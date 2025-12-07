@@ -1,0 +1,43 @@
+name: Build Amethyst iOS IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Install Homebrew dependencies
+      run: |
+        brew install cmake ninja git-lfs
+        git lfs pull
+
+    - name: Install Xcode CLI tools
+      run: sudo xcode-select --switch /Applications/Xcode.app
+
+    - name: Build Amethyst
+      run: |
+        xcodebuild \
+          -project Amethyst.xcodeproj \
+          -scheme Amethyst \
+          -configuration Release \
+          -sdk iphoneos \
+          CODE_SIGNING_ALLOWED=NO
+
+    - name: Package IPA
+      run: |
+        mkdir Payload
+        cp -R build/Release-iphoneos/Amethyst.app Payload/
+        zip -r Amethyst.ipa Payload
+
+    - name: Upload IPA
+      uses: actions/upload-artifact@v3
+      with:
+        name: Amethyst-IPA
+        path: Amethyst.ipa
