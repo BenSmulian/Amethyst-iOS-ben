@@ -8,61 +8,47 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    # 1️⃣ Checkout the repo and submodules
+    # 1️⃣ Checkout repo
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
         submodules: recursive
 
-    # 2️⃣ List available schemes for debugging / selection
-    - name: List Xcode Schemes (project)
+    # 2️⃣ List workspace schemes
+    - name: List Xcode Workspace Schemes
       run: |
-        xcodebuild -list -project Amethyst.xcodeproj || echo "Project not found, skipping"
-    
-    - name: List Xcode Schemes (workspace)
-      run: |
-        xcodebuild -list -workspace Amethyst.xcworkspace || echo "Workspace not found, skipping"
+        xcodebuild -list -workspace Amethyst.xcworkspace
 
-    # 3️⃣ Install dependencies
+    # 3️⃣ Install Homebrew dependencies
     - name: Install Homebrew dependencies
       run: |
         brew install cmake ninja git-lfs
         git lfs pull
 
-    # 4️⃣ Select Xcode version
+    # 4️⃣ Select Xcode
     - name: Select Xcode
       run: sudo xcode-select --switch /Applications/Xcode.app
 
-    # 5️⃣ Build the app
+    # 5️⃣ Build the app using workspace
     - name: Build Amethyst
       run: |
-        # ← REPLACE THIS SCHEME with the one from the log above
-        SCHEME="AmethystIOS"
-        # Use workspace if available, else fallback to project
-        if [ -f "Amethyst.xcworkspace" ]; then
-          xcodebuild -workspace Amethyst.xcworkspace \
-                     -scheme "$SCHEME" \
-                     -configuration Release \
-                     -sdk iphoneos \
-                     CODE_SIGNING_ALLOWED=NO \
-                     CODE_SIGNING_REQUIRED=NO
-        else
-          xcodebuild -project Amethyst.xcodeproj \
-                     -scheme "$SCHEME" \
-                     -configuration Release \
-                     -sdk iphoneos \
-                     CODE_SIGNING_ALLOWED=NO \
-                     CODE_SIGNING_REQUIRED=NO
-        fi
+        # Replace this with the scheme listed from previous step
+        SCHEME="AmethystIOS"  # <-- Update with actual scheme name from workspace
+        xcodebuild -workspace Amethyst.xcworkspace \
+                   -scheme "$SCHEME" \
+                   -configuration Release \
+                   -sdk iphoneos \
+                   CODE_SIGNING_ALLOWED=NO \
+                   CODE_SIGNING_REQUIRED=NO
 
-    # 6️⃣ Package into .ipa
+    # 6️⃣ Package IPA
     - name: Package IPA
       run: |
         mkdir -p Payload
         cp -R build/Release-iphoneos/*.app Payload/
         zip -r Amethyst.ipa Payload
 
-    # 7️⃣ Upload IPA artifact
+    # 7️⃣ Upload IPA
     - name: Upload IPA
       uses: actions/upload-artifact@v4
       with:
