@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: recursive
 
@@ -18,7 +18,7 @@ jobs:
         brew install cmake ninja git-lfs
         git lfs pull
 
-    - name: Install Xcode CLI tools
+    - name: Select Xcode
       run: sudo xcode-select --switch /Applications/Xcode.app
 
     - name: Build Amethyst
@@ -28,7 +28,8 @@ jobs:
           -scheme Amethyst \
           -configuration Release \
           -sdk iphoneos \
-          CODE_SIGNING_ALLOWED=NO
+          CODE_SIGNING_ALLOWED=NO \
+          CODE_SIGNING_REQUIRED=NO
 
     - name: Package IPA
       run: |
@@ -37,7 +38,7 @@ jobs:
         zip -r Amethyst.ipa Payload
 
     - name: Upload IPA
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Amethyst-IPA
         path: Amethyst.ipa
